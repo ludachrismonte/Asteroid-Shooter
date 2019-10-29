@@ -12,25 +12,33 @@
 </head>
 <!-- HTML -->
 <body>
+
+  <audio id="sound-intro"><source src="./audio/intro.mp3" type="audio/mpeg"></audio>
+  <audio id="sound-explode"><source src="./audio/explode.wav" type="audio/mpeg"></audio>
+  <audio id="sound-rocket"><source src="./audio/rocket.wav" type="audio/mpeg"></audio>
+  <audio id="sound-gameover"><source src="./audio/gameover.wav" type="audio/mpeg"></audio>
+
   <div class='outer-container'>
     <div class='game-window'>
       <div id='enterprise' class='ship'>
         <img class='ship-avatar' src='img/fighter.png' height='50px'/> <!--ship img: src='http://i.stack.imgur.com/rsH6n.png'-->
       </div>
 
-      <div id="start-panel" style="display: block;">
+      <div id="start-panel" class="game-panel" style="display: block;">
         <h1>Div Blaster</h1>
         <p>Arrow-Keys: move ship<br>
           Spacebar: fire rocket<br>
         </p>
         <div id="start-button">Start!</div>
       </div>
+
+      <div id="game-over-panel" class="game-panel" style="display: none;">
+        <h1>GAME OVER!</h1>
+        <div id="restart-button">Main Menu</div>
+      </div>
     </div>
 
-    <div class='game-over' style="display: none;">
-      <h1>GAME OVER!</h1>
-      <p>(refresh to play again)</p>
-    </div>
+
 
     <div class='status-window' style='text-align: center'>
       <h3>Welcome!</h3>
@@ -42,6 +50,7 @@
       <h1 id='accuracy-box'>0%</h1>
     </div>
   </div>
+
 </body>
 
 </html>

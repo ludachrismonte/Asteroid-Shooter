@@ -38,23 +38,31 @@ var KEYS = {
 }
 
 // "initial", "stage one", "stage two", "stage three", "gameover"
-var gamePhase = "initial"
+var gamePhase;
 
+var audio;
 
 // Main
 $(document).ready( function() {
   console.log("Ready!");
+  gamePhase = "initial"
+  audio = true;
+  if (audio) {
+    //$("#sound-intro")[0].play();
+  }
 
   // Set global handles (now that the page is loaded)
   gwhGame = $('.game-window');
-  gwhOver = $('.game-over');
+  gwhOver = $('#game-over-panel');
+  gwhStart = $("#start-panel");
   gwhStatus = $('.status-window');
   gwhScore = $('#score-box');
   gwhAccuracy = $('#accuracy-box');
-  ship = $('#enterprise');  // set the global ship handle
+  ship = $('#enterprise');
 
   // Add button handlers
   $("#start-button").on("click", startGame);
+  $("#restart-button").on("click", restart);
 
   // Set global positions
   maxShipPosX = gwhGame.width() - ship.width();
@@ -69,9 +77,46 @@ $(document).ready( function() {
 
 
 function startGame() {
-  $("#start-panel").hide();
+  gwhStart.hide();
   gamePhase = "stage one";
-  setInterval(createAsteroid, ASTEROID_SPAWN_RATE);
+  var mainLoop = setInterval(function(){ 
+    if (gamePhase !== "stage one" && gamePhase !== "stage two" && gamePhase !== "stage three") {
+      clearInterval(mainLoop);
+      return;
+    }
+    createAsteroid();
+  }, ASTEROID_SPAWN_RATE);
+}
+
+function restart() {
+  gamePhase = "initial";
+  gwhOver.hide();
+  gwhStart.show();
+  if (audio) {
+    $("#sound-intro")[0].play();
+  }
+}
+
+function gameOver() {
+  gamePhase = "game over";
+  if (audio) {
+    $("#sound-gameover")[0].play();
+  }
+  // Remove all game elements
+  $('.rocket').remove();
+  $('.asteroid').remove();
+  gwhOver.show();
+}
+
+function score(s) {
+  gwhScore.html(parseInt($('#score-box').html()) + s);
+  var score = parseInt($('#score-box').html())
+  if (gamePhase === "stage two" && score >= 20000) {
+    gamePhase = "stage three";
+  }
+  else if (gamePhase === "stage one" && score >= 10000) {
+    gamePhase = "stage two";
+  }
 }
 
 function keydownRouter(e) {
@@ -112,8 +157,7 @@ function checkCollisions() {
 
         // Score points for hitting an asteroid! Smaller asteroid --> higher score
         var points = Math.ceil(MAX_ASTEROID_SIZE-curAsteroid.width()) * SCORE_UNIT;
-        // Update the visible score
-        gwhScore.html(parseInt($('#score-box').html()) + points);
+        score(points);
       }
     });
   });
@@ -123,17 +167,7 @@ function checkCollisions() {
   $('.asteroid').each( function() {
     var curAsteroid = $(this);
     if (isColliding(curAsteroid, ship)) {
-      // Remove all game elements
-      ship.remove();
-      $('.rocket').remove();  // remove all rockets
-      $('.asteroid').remove();  // remove all asteroids
-
-      // Hide primary windows
-      gwhGame.hide();
-      gwhStatus.hide();
-
-      // Show "Game Over" screen
-      gwhOver.show();
+      gameOver();
     }
   });
 }
@@ -217,6 +251,9 @@ function createAsteroid() {
 // Handle "fire" [rocket] events
 function fireRocket() {
   console.log('Firing rocket...');
+  if (audio) {
+    $("#sound-rocket")[0].play();
+  }
   // NOTE: source - https://www.raspberrypi.org/learning/microbit-game-controller/images/missile.png
   var rocketDivStr = "<div id='r-" + rocketIdx + "' class='rocket'><img src='img/rocket.png'/></div>";
   // Add the rocket to the screen

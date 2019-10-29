@@ -14,7 +14,12 @@ html {
 .game-window {
   height: 100%;
   width: 300px;
-  background: #222;
+  background: url(../img/space.png);
+  -webkit-animation:80s scroll infinite linear;
+  -moz-animation:80s scroll infinite linear;
+  -o-animation:80s scroll infinite linear;
+  -ms-animation:80s scroll infinite linear;
+  animation:80s scroll infinite linear;
   border-right: 3px solid #53f;
   float: left;
 }
@@ -25,12 +30,16 @@ html {
   float: right;
 }
 
-#start-panel {
+.game-panel {
   position: fixed;
   left: 50px;
   text-align: center;
   color: white;
 }
+
+#game-over-panel {}
+
+#start-panel {}
 
 #start-button {
   height: 50px;
@@ -64,5 +73,35 @@ html {
   }
   to {
     transform: rotate(359deg);
+  }
+}
+
+@-webkit-keyframes scroll{
+  100%{
+    background-position:0px 3000px;
+  }
+}
+
+@-moz-keyframes scroll{
+  100%{
+    background-position:0px 3000px;
+  }
+}
+
+@-o-keyframes scroll{
+  100%{
+    background-position:0px 3000px;
+  }
+}
+
+@-ms-keyframes scroll{
+  100%{
+    background-position:0px 3000px;
+  }
+}
+
+@keyframes scroll{
+  100%{
+    background-position:0px 3000px;
   }
 }
