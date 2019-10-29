@@ -13,6 +13,8 @@
 <!-- HTML -->
 <body>
 
+  <link href="https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap" rel="stylesheet">
+
   <audio id="sound-intro"><source src="./audio/intro.mp3" type="audio/mpeg"></audio>
   <audio id="sound-explode"><source src="./audio/explode.wav" type="audio/mpeg"></audio>
   <audio id="sound-rocket"><source src="./audio/rocket.wav" type="audio/mpeg"></audio>
@@ -20,21 +22,27 @@
 
   <div class='outer-container'>
     <div class='game-window'>
-      <div id='enterprise' class='ship'>
-        <img class='ship-avatar' src='img/fighter.png' height='50px'/> <!--ship img: src='http://i.stack.imgur.com/rsH6n.png'-->
+
+      <div id='enterprise-1'>
+        <img src='img/fighter.png' height='50px'/>
+      </div>
+      <div id='enterprise-2'>
+        <img src='img/fighter.png' height='50px'/>
       </div>
 
       <div id="start-panel" class="game-panel" style="display: block;">
         <h1>Div Blaster</h1>
-        <p>Arrow-Keys: move ship<br>
+        <p>
+          Arrow-Keys: move ship<br>
           Spacebar: fire rocket<br>
+          L: auto-advance<br>
         </p>
-        <div id="start-button">Start!</div>
+        <div class="game-button" id="start-button">Start!</div>
       </div>
 
       <div id="game-over-panel" class="game-panel" style="display: none;">
         <h1>GAME OVER!</h1>
-        <div id="restart-button">Main Menu</div>
+        <div class="game-button" id="restart-button">Main Menu</div>
       </div>
     </div>
 

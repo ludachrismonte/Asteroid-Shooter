@@ -1,5 +1,5 @@
 html {
-  font-family: Monaco, Helvetica, Times;
+  font-family: 'Press Start 2P', cursive, Helvetica, Times;
   background-color: black;
 }
 
@@ -7,13 +7,13 @@ html {
 /* Main Containers */
 .outer-container {
   height: 600px;
-  width: 500px;
+  width: 800px;
   background: #eee;
   border: 5px solid #ccc;
 }
 .game-window {
   height: 100%;
-  width: 300px;
+  width: 600px;
   background: url(../img/space.png);
   -webkit-animation:80s scroll infinite linear;
   -moz-animation:80s scroll infinite linear;
@@ -32,7 +32,8 @@ html {
 
 .game-panel {
   position: fixed;
-  left: 50px;
+  width: 350px;
+  left: 125px;
   text-align: center;
   color: white;
 }
@@ -41,18 +42,26 @@ html {
 
 #start-panel {}
 
-#start-button {
-  height: 50px;
-  width: 100px;
-  background-color: blue;
-  margin-left: auto;
+.game-button {
+  padding: 20px 0px 20px 0px;
+  background-color: green;
   margin-right: auto;
+  margin-left: auto;
+}
+.game-button:hover {
+  background-color: lightgreen;
 }
 
 /* Game Objects */
-.ship {
+#enterprise-1 {
   top: 530px;
-  left: 122px;
+  left: 0px;
+  position: relative;
+  display: inline-block;
+}
+#enterprise-2 {
+  top: 530px;
+  left: 0px;
   position: relative;
   display: inline-block;
 }

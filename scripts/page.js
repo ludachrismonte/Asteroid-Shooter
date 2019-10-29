@@ -1,8 +1,9 @@
 ////  Page-scoped globals  ////
 
 // Counters
-var rocketIdx = 0;
+var rocketIdx = 1;
 var asteroidIdx = 1;
+var numFires = 0;
 var numHits = 0;
 
 // Size Constants
@@ -15,15 +16,6 @@ var ASTEROID_SPAWN_RATE = 1000;  //ms
 var OBJECT_REFRESH_RATE = 50;  //ms
 var SCORE_UNIT = 100;  // scoring is in 100-point units
 
-// Size vars
-var maxShipPosX, maxShipPosY;
-
-// Global Window Handles (gwh__)
-var gwhGame, gwhOver, gwhStatus, gwhScore;
-
-// Global Object Handles
-var ship;
-
 /*
  * This is a handy little container trick: use objects as constants to collect
  * vals for easier (and more understandable) reference to later.
@@ -33,9 +25,19 @@ var KEYS = {
   up: 38,
   right: 39,
   down: 40,
-  shift: 16,
+  L_key: 76,
   spacebar: 32
 }
+
+// Size vars
+var maxShipPosX, maxShipPosY;
+
+// Global Window Handles (gwh__)
+var gwhGame, gwhOver, gwhStatus, gwhScore;
+
+// Global Object Handles
+var shipA;
+var shipB;
 
 // "initial", "stage one", "stage two", "stage three", "gameover"
 var gamePhase;
@@ -58,15 +60,17 @@ $(document).ready( function() {
   gwhStatus = $('.status-window');
   gwhScore = $('#score-box');
   gwhAccuracy = $('#accuracy-box');
-  ship = $('#enterprise');
+  shipA = $('#enterprise-1');
+  shipB = $('#enterprise-2');
+  shipB.hide();
 
   // Add button handlers
   $("#start-button").on("click", startGame);
   $("#restart-button").on("click", restart);
 
   // Set global positions
-  maxShipPosX = gwhGame.width() - ship.width();
-  maxShipPosY = gwhGame.height() - ship.height();
+  maxShipPosX = gwhGame.width() - shipA.width();
+  maxShipPosY = gwhGame.height() - shipA.height();
   $(window).keydown(keydownRouter);
 
   // Periodically check for collisions (instead of checking every position-update)
@@ -75,7 +79,29 @@ $(document).ready( function() {
   }, 100);
 });
 
+function keydownRouter(e) {
+  switch (e.which) {
+    case KEYS.spacebar:
+      fireRocket(shipA);
+      if (gamePhase === "stage three") {
+        fireRocket(shipB)
+      }
+      break;
+    case KEYS.left:
+    case KEYS.right:
+    case KEYS.up:
+    case KEYS.down:
+      moveShip(e.which);
+      break;
+    case KEYS.L_key:
+      advanceLevel();
+      break;
+    default:
+      console.log("Invalid input!");
+  }
+}
 
+// Starts the Game
 function startGame() {
   gwhStart.hide();
   gamePhase = "stage one";
@@ -88,13 +114,26 @@ function startGame() {
   }, ASTEROID_SPAWN_RATE);
 }
 
+// Takes the Player back to the Main Menu
 function restart() {
   gamePhase = "initial";
+  shipB.hide();
+  rocketIdx = 1;
+  asteroidIdx = 1;
+  numFires = 0;
+  numHits = 0;
+  setAccuracy();
   gwhOver.hide();
   gwhStart.show();
   if (audio) {
     $("#sound-intro")[0].play();
   }
+}
+
+function startStageThree() {
+  gamePhase = "stage three";
+  shipB.show();
+  maxShipPosX = gwhGame.width() - shipA.width() * 2;
 }
 
 function gameOver() {
@@ -110,32 +149,32 @@ function gameOver() {
 
 function score(s) {
   gwhScore.html(parseInt($('#score-box').html()) + s);
-  var score = parseInt($('#score-box').html())
+  var score = parseInt($('#score-box').html());
   if (gamePhase === "stage two" && score >= 20000) {
-    gamePhase = "stage three";
+    startStageThree();
   }
   else if (gamePhase === "stage one" && score >= 10000) {
     gamePhase = "stage two";
   }
 }
 
-function keydownRouter(e) {
-  switch (e.which) {
-    case KEYS.spacebar:
-      fireRocket();
-      break;
-    case KEYS.left:
-    case KEYS.right:
-    case KEYS.up:
-    case KEYS.down:
-      moveShip(e.which);
-      break;
-    default:
-      console.log("Invalid input!");
+function setAccuracy() {
+  if (numFires == 0) {
+    gwhAccuracy.html("0%");
   }
+  else gwhAccuracy.html(parseInt(Math.round(numHits / numFires * 100)) + "%");
 }
 
-
+function advanceLevel() {
+  if (gamePhase === "stage one") {
+    gamePhase = "stage two";
+    gwhScore.html(parseInt(10000));
+  }
+  else if (gamePhase === "stage two") {
+    startStageThree();
+    gwhScore.html(parseInt(20000));
+  }
+}
 
 // Check for any collisions and remove the appropriate object if needed
 function checkCollisions() {
@@ -166,7 +205,7 @@ function checkCollisions() {
   // Next, check for asteroid-ship interactions
   $('.asteroid').each( function() {
     var curAsteroid = $(this);
-    if (isColliding(curAsteroid, ship)) {
+    if (isColliding(curAsteroid, shipA) || (gamePhase === "stage three" && isColliding(curAsteroid, shipB))) {
       gameOver();
     }
   });
@@ -249,7 +288,8 @@ function createAsteroid() {
 }
 
 // Handle "fire" [rocket] events
-function fireRocket() {
+function fireRocket(sh) {
+  numFires++;
   console.log('Firing rocket...');
   if (audio) {
     $("#sound-rocket")[0].play();
@@ -260,11 +300,11 @@ function fireRocket() {
   gwhGame.append(rocketDivStr);
   // Create and rocket handle based on newest index
   var curRocket = $('#r-'+rocketIdx);
-  rocketIdx++;  // update the index to maintain uniqueness next time
+  rocketIdx++;
   // Set vertical position
-  curRocket.css('top', ship.css('top'));
+  curRocket.css('top', sh.css('top'));
   // Set horizontal position
-  var rxPos = parseInt(ship.css('left')) + (ship.width()/2);  // In order to center the rocket, shift by half the div size (recall: origin [0,0] is top-left of div)
+  var rxPos = parseInt(sh.css('left')) + (sh.width()/2);  // In order to center the rocket, shift by half the div size (recall: origin [0,0] is top-left of div)
   curRocket.css('left', rxPos+"px");
 
   // Create movement update handler
@@ -276,7 +316,7 @@ function fireRocket() {
       curRocket.remove();
       
       // Update the accuracy
-      gwhAccuracy.html(parseInt(Math.round(numHits / rocketIdx * 100)) + "%");
+      setAccuracy();
       clearInterval(thisInterval);
     }
   }, OBJECT_REFRESH_RATE);
@@ -285,33 +325,37 @@ function fireRocket() {
 // Handle ship movement events
 function moveShip(arrow) {
   switch (arrow) {
-    case KEYS.left:  // left arrow
-      var newPos = parseInt(ship.css('left'))-SHIP_SPEED;
+    case KEYS.left:
+      var newPos = parseInt(shipA.css('left'))-SHIP_SPEED;
       if (newPos < 0) {
         newPos = 0;
       }
-      ship.css('left', newPos);
+      shipA.css('left', newPos);
+      shipB.css('left', newPos);
     break;
     case KEYS.right:  // right arrow
-      var newPos = parseInt(ship.css('left'))+SHIP_SPEED;
+      var newPos = parseInt(shipA.css('left'))+SHIP_SPEED;
       if (newPos > maxShipPosX) {
         newPos = maxShipPosX;
       }
-      ship.css('left', newPos);
+      shipA.css('left', newPos);
+      shipB.css('left', newPos);
     break;
     case KEYS.up:  // up arrow
-      var newPos = parseInt(ship.css('top'))-SHIP_SPEED;
+      var newPos = parseInt(shipA.css('top'))-SHIP_SPEED;
       if (newPos < 0) {
         newPos = 0;
       }
-      ship.css('top', newPos);
+      shipA.css('top', newPos);
+      shipB.css('top', newPos);
     break;
     case KEYS.down:  // down arrow
-      var newPos = parseInt(ship.css('top'))+SHIP_SPEED;
+      var newPos = parseInt(shipA.css('top'))+SHIP_SPEED;
       if (newPos > maxShipPosY) {
         newPos = maxShipPosY;
       }
-      ship.css('top', newPos);
+      shipA.css('top', newPos);
+      shipB.css('top', newPos);
     break;
   }
 }
