@@ -1,0 +1,68 @@
+html {
+  font-family: Monaco, Helvetica, Times;
+  background-color: black;
+}
+
+
+/* Main Containers */
+.outer-container {
+  height: 600px;
+  width: 500px;
+  background: #eee;
+  border: 5px solid #ccc;
+}
+.game-window {
+  height: 100%;
+  width: 300px;
+  background: #222;
+  border-right: 3px solid #53f;
+  float: left;
+}
+.status-window {
+  height: 100%;
+  width: 197px;
+  background: #feb;
+  float: right;
+}
+
+#start-panel {
+  position: fixed;
+  left: 50px;
+  text-align: center;
+  color: white;
+}
+
+#start-button {
+  height: 50px;
+  width: 100px;
+  background-color: blue;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Game Objects */
+.ship {
+  top: 530px;
+  left: 122px;
+  position: relative;
+  display: inline-block;
+}
+.rocket {
+  position: absolute;
+}
+.rocket img {
+  height: 40px;
+}
+.asteroid {
+  position: absolute;
+  animation: rotation 8s infinite linear;
+}
+
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}
