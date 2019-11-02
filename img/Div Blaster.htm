@@ -1,33 +1,33 @@
 <!DOCTYPE html>
-<html>
-<head>
-	<meta charset="utf-8">
+<!-- saved from url=(0066)file:///Users/chrismonteferrante/Documents/AsteroidGame/index.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	
 	<title>Div Blaster</title>
 	<!-- JS -->
-	<script type="text/javascript" src='scripts/jquery.min.js'></script>
-	<script type="text/javascript" src='scripts/page.js'></script>
+	<script type="text/javascript" src="./Div Blaster_files/jquery.min.js"></script>
+	<script type="text/javascript" src="./Div Blaster_files/page.js"></script>
 
 	<!-- CSS -->
-	<link rel="stylesheet" type="text/css" href="style/style.css">
+	<link rel="stylesheet" type="text/css" href="./Div Blaster_files/style.css">
 </head>
 <!-- HTML -->
 <body>
 
-  <link href="https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link href="./Div Blaster_files/css" rel="stylesheet">
 
   <audio id="sound-intro"><source src="./audio/intro.mp3" type="audio/mpeg"></audio>
   <audio id="sound-explode"><source src="./audio/explode.wav" type="audio/mpeg"></audio>
   <audio id="sound-rocket"><source src="./audio/rocket.wav" type="audio/mpeg"></audio>
   <audio id="sound-gameover"><source src="./audio/gameover.wav" type="audio/mpeg"></audio>
 
-  <div class='outer-container'>
-    <div class='game-window'>
+  <div class="outer-container">
+    <div class="game-window">
 
-      <div id='enterprise-1'>
-        <img src='img/fighter.png' height='50px'/>
+      <div id="enterprise-1" style="left: 125px; top: 180px;">
+        <img src="./Div Blaster_files/fighter.png" height="50px">
       </div>
-      <div id='enterprise-2'>
-        <img src='img/fighter.png' height='50px'/>
+      <div id="enterprise-2" style="display: none; left: 125px; top: 180px;">
+        <img src="./Div Blaster_files/fighter.png" height="50px">
       </div>
 
       <div id="start-panel" class="game-panel" style="display: block;">
@@ -42,24 +42,24 @@
 
       <div id="game-over-panel" class="game-panel" style="display: none;">
         <h1>GAME OVER!</h1>
-        <span id="game-over-score">Score:</span><br><br>
         <div class="game-button" id="restart-button">Main Menu</div>
       </div>
     </div>
 
 
 
-    <div class='status-window' style='text-align: center'>
+    <div class="status-window" style="text-align: center">
       <h3>Welcome!</h3>
       <hr>
       <br>
       <p>score:</p>
-      <h1 id='score-box'>0</h1>
+      <h1 id="score-box">0</h1>
       <p>accuracy:</p>
-      <h1 id='accuracy-box'>0%</h1>
+      <h1 id="accuracy-box">0%</h1>
     </div>
   </div>
 
-</body>
 
-</html>
+
+
+</body></html>

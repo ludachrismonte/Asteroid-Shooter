@@ -61,21 +61,23 @@ $(document).ready( function() {
   gwhStatus = $('.status-window');
   gwhScore = $('#score-box');
   gwhAccuracy = $('#accuracy-box');
-
   shipA = $('#enterprise-1');
   shipB = $('#enterprise-2');
-  resetShip();
+  shipB.hide();
 
   // Add button handlers
   $("#start-button").on("click", startGame);
   $("#restart-button").on("click", restart);
 
+  // Set global positions
+  maxShipPosX = gwhGame.width() - shipA.width();
+  maxShipPosY = gwhGame.height() - shipA.height();
   $(window).keydown(keydownRouter);
 
   // Periodically check for collisions (instead of checking every position-update)
   setInterval( function() {
     checkCollisions();  // Remove elements if there are collisions
-  }, 50);
+  }, 100);
 });
 
 function keydownRouter(e) {
@@ -113,20 +115,10 @@ function startGame() {
   }, ASTEROID_SPAWN_RATE);
 }
 
-function resetShip() {
-  maxShipPosX = gwhGame.width() - shipA.width();
-  maxShipPosY = gwhGame.height() - shipA.height();
-  shipA.css('top', maxShipPosY);
-  shipA.css('left', maxShipPosX / 2);
-  shipB.css('top', maxShipPosY);
-  shipB.css('left', maxShipPosX / 2);
-  shipB.hide();
-}
-
 // Takes the Player back to the Main Menu
 function restart() {
   gamePhase = "initial";
-  resetShip();
+  shipB.hide();
   score = 0;
   gwhScore.html(parseInt(score));
   rocketIdx = 1;
@@ -148,7 +140,7 @@ function startStageThree() {
 }
 
 function gameOver() {
-  gamePhase = "gameover";
+  gamePhase = "game over";
   if (audio) {
     $("#sound-gameover")[0].play();
   }
@@ -156,7 +148,6 @@ function gameOver() {
   $('.rocket').remove();
   $('.asteroid').remove();
   gwhOver.show();
-  $('#game-over-score').html("Score: " + parseInt(score));
 }
 
 function addScore(s) {
@@ -285,25 +276,14 @@ function createAsteroid() {
 
   // Set the instance-specific properties
   curAsteroid.css('left', startingPosition+"px");
-  console.log(curAsteroid.css('left'));
 
   var mySpeed = OBJECT_REFRESH_RATE;
-  var specialAsteroid = false;
-  if ((gamePhase === "stage two" || gamePhase === "stage three") && asteroidIdx % 3 === 0) {
-    specialAsteroid = true;
+  if ((gamePhase == "stage two" || gamePhase == "stage three") && asteroidIdx % 3 == 0) {
     mySpeed /= 5; 
   }
 
   // Make the asteroids fall towards the bottom
-  setInterval( function () {
-    if (gamePhase === "stage three" && specialAsteroid) {
-      if (curAsteroid.css('left') < shipA.css('left')) {
-        curAsteroid.css('left', parseInt(curAsteroid.css('left'))+1);
-      }
-      else if (curAsteroid.css('left') > shipA.css('left')) {
-        curAsteroid.css('left', parseInt(curAsteroid.css('left'))-1);
-      }
-    }
+  setInterval( function() {
     curAsteroid.css('top', parseInt(curAsteroid.css('top'))+ASTEROID_SPEED);
     // Check to see if the asteroid has left the game/viewing window
     if (parseInt(curAsteroid.css('top')) > (gwhGame.height() - curAsteroid.height())) {
@@ -314,8 +294,6 @@ function createAsteroid() {
 
 // Handle "fire" [rocket] events
 function fireRocket(sh) {
-  if (gamePhase === "initial" || gamePhase === "gameover") { return; }
-
   numFires++;
   console.log('Firing rocket...');
   if (audio) {
@@ -328,14 +306,10 @@ function fireRocket(sh) {
   // Create and rocket handle based on newest index
   var curRocket = $('#r-'+rocketIdx);
   rocketIdx++;
-
   // Set vertical position
   curRocket.css('top', sh.css('top'));
   // Set horizontal position
-  if (sh === shipA) {
-    var rxPos = parseInt(sh.css('left')) + (sh.width()/2 + 3);
-  }
-  else var rxPos = parseInt(sh.css('left')) + (sh.width()/2 + 77);
+  var rxPos = parseInt(sh.css('left')) + (sh.width()/2);  // In order to center the rocket, shift by half the div size (recall: origin [0,0] is top-left of div)
   curRocket.css('left', rxPos+"px");
 
   // Create movement update handler
