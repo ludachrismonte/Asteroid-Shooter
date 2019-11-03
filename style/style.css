@@ -73,21 +73,23 @@ html {
 
 
 .ship {
+  position: absolute;
   max-width: 55px;
   max-height: 50px;
-  top: 530px;
-  left: 0px;
-  position: relative;
-  display: inline-block;
 }
 .shield {
-  position: relative;
-  top: -55px;
+  position: absolute;
+  top: -5px;
   left: -3px;
 }
 .shield-pickup {
   position: absolute;
-  border: 1px solid white;
+}
+.explosion {
+  position: absolute;
+  height: 50px;
+  top: -25px;
+  left: 3px;
 }
 .rocket {
   position: absolute;
@@ -98,7 +100,6 @@ html {
 .asteroid {
   position: absolute;
   animation: rotation 8s infinite linear;
-  outline: 1px solid white;
 }
 
 @keyframes rotation {

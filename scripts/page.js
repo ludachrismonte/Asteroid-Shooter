@@ -66,8 +66,9 @@ $(document).ready( function() {
   shipA = $('#enterprise-1');
   shipB = $('#enterprise-2');
 
-  shieldA = $('#shieldA');
-  shieldB = $('#shieldB');
+  shields = $('.shield');
+  explosions = $('.explosion');
+  explosions.hide();
 
   // Add button handlers
   $("#start-button").on("click", startGame);
@@ -118,7 +119,7 @@ function keydownRouter(e) {
       moveShip(e.which);
       break;
     case KEYS.L_key:
-      advanceLevel();
+      autoAdvanceLevel();
       break;
     default:
       console.log("Invalid input!");
@@ -188,16 +189,35 @@ function resetShip() {
   shipA.css('top', maxShipPosY);
   shipA.css('left', maxShipPosX / 2);
   shipB.css('top', maxShipPosY);
-  shipB.css('left', maxShipPosX / 2);
+  shipB.css('left', maxShipPosX / 2 + 60);
   shipB.hide();
 }
 
+function playLevelUp() {
+  if (audio) {
+    $("#sound-level-up")[0].play();
+  }
+}
 
+function autoAdvanceLevel() {
+  if (gamePhase === "stage one") {
+    gamePhase = "stage two";
+    score = 10000;
+    gwhScore.html(parseInt(score));
+    playLevelUp();
+  }
+  else if (gamePhase === "stage two") {
+    startStageThree();
+    score = 20000;
+    gwhScore.html(parseInt(20000));
+  }
+}
 
 function startStageThree() {
   gamePhase = "stage three";
   shipB.show();
   maxShipPosX = gwhGame.width() - shipA.width() * 2;
+  playLevelUp();
 }
 
 function gameOver() {
@@ -221,6 +241,7 @@ function addScore(s) {
   }
   else if (gamePhase === "stage one" && score >= 10000) {
     gamePhase = "stage two";
+    playLevelUp();
   }
 }
 
@@ -231,29 +252,14 @@ function setAccuracy() {
   else gwhAccuracy.html(parseInt(Math.round(numHits / numFires * 100)) + "%");
 }
 
-function advanceLevel() {
-  if (gamePhase === "stage one") {
-    gamePhase = "stage two";
-    score = 10000;
-    gwhScore.html(parseInt(score));
-  }
-  else if (gamePhase === "stage two") {
-    startStageThree();
-    score = 20000;
-    gwhScore.html(parseInt(20000));
-  }
-}
-
 function toggleShields() {
   if (shieldState) {
     shieldState = false;
-    shieldA.hide();
-    shieldB.hide();
+    shields.hide();
   }
   else {
     shieldState = true;
-    shieldA.show();
-    shieldB.show();
+    shields.show();
   }
 }
 
@@ -271,7 +277,7 @@ function checkCollisions() {
         curRocket.remove();
         curAsteroid.remove();
         numHits++;
-        if (numHits % ITEM_SPAWN_RATE === 0) {
+        if (numHits % ITEM_SPAWN_RATE === 0 && (gamePhase === "stage two" || gamePhase === "stage three")) {
           createShield();
         }
         var points = Math.ceil(MAX_ASTEROID_SIZE-curAsteroid.width()) * SCORE_UNIT;
@@ -299,13 +305,18 @@ function checkCollisions() {
   $('.asteroid').each( function() {
     var curAsteroid = $(this);
     if (isColliding(curAsteroid, shipA) || isColliding(curAsteroid, shipB)) {
+      if (audio) {
+        $("#sound-explode")[0].play();
+      }
+      explosions.show();
+      setTimeout(function(){ explosions.hide(); }, 500);
       if (shieldState) {
         curAsteroid.remove();
         toggleShields();
       }
       else {
         gameOver();
-      }      
+      }
     }
   });
 
@@ -442,10 +453,7 @@ function fireRocket(sh) {
   curRocket.css('top', sh.css('top'));
 
   // Set horizontal position
-  if (sh === shipA) {
-    var rxPos = parseInt(sh.css('left')) + (sh.width()/2 + 3);
-  }
-  else var rxPos = parseInt(sh.css('left')) + (sh.width()/2 + 77);
+  var rxPos = parseInt(sh.css('left')) + (sh.width() / 2 - 9);
   curRocket.css('left', rxPos+"px");
 
   // Movement
@@ -468,7 +476,7 @@ function moveShip(arrow) {
         newPos = 0;
       }
       shipA.css('left', newPos);
-      shipB.css('left', newPos);
+      shipB.css('left', newPos + 60);
     break;
     case KEYS.right:  // right arrow
       var newPos = parseInt(shipA.css('left'))+SHIP_SPEED;
@@ -476,7 +484,7 @@ function moveShip(arrow) {
         newPos = maxShipPosX;
       }
       shipA.css('left', newPos);
-      shipB.css('left', newPos);
+      shipB.css('left', newPos + 60);
     break;
     case KEYS.up:  // up arrow
       var newPos = parseInt(shipA.css('top'))-SHIP_SPEED;
