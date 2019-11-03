@@ -34,7 +34,7 @@ var KEYS = {
 var maxShipPosX, maxShipPosY;
 
 // Global Window Handles (gwh__)
-var gwhGame, gwhOver, gwhStatus, gwhScore;
+var gwhGame, gwhOver, gwhStatus, gwhScore, settings;
 
 // Global Object Handles
 var shipA;
@@ -42,14 +42,14 @@ var shipB;
 
 // "initial", "stage one", "stage two", "stage three", "gameover"
 var gamePhase;
-
+var mainLoop;
 var audio;
 
 // Main
 $(document).ready( function() {
   console.log("Ready!");
   gamePhase = "initial"
-  audio = true;
+  audio = false;
   if (audio) {
     //$("#sound-intro")[0].play();
   }
@@ -61,6 +61,8 @@ $(document).ready( function() {
   gwhStatus = $('.status-window');
   gwhScore = $('#score-box');
   gwhAccuracy = $('#accuracy-box');
+  settings = $("#settings");
+  settings.hide();
 
   shipA = $('#enterprise-1');
   shipB = $('#enterprise-2');
@@ -100,11 +102,55 @@ function keydownRouter(e) {
   }
 }
 
+var settingsOpen = false;
+
+function toggleSettings() {
+  if (settingsOpen) {
+    settingsOpen = false;
+    settings.hide();
+    $("#settings-button-toggle").html("Open Setting Panel");
+  }
+  else {
+    settingsOpen = true;
+    settings.show();
+    $("#settings-button-toggle").html("Close Setting Panel");
+  }
+}
+
+function setSettings() {
+  if ($("#settings-audio").checked) {
+    audio = true;
+  } 
+  else {
+    audio = false;
+  }
+  if ($("#settings-rate").val() !== "") {
+    if ($("#settings-rate").val() < 0.2 || $("#settings-rate").val() > 4){
+      alert("Asteroid rate must be between 0.2 and 4.0.");
+      $("#settings-rate").val("");
+      return;
+    }
+    ASTEROID_SPAWN_RATE = ($("#settings-rate").val() * (Math.random() + 0.5) * 1000).toFixed(0);
+    console.log("Set ASTEROID_SPAWN_RATE to: " + ASTEROID_SPAWN_RATE);
+    clearInterval(mainLoop);
+    startSpawn();
+  }
+  settingsOpen = false;
+  settings.hide();
+  $("#settings-button-toggle").html("Open Setting Panel");
+}
+
 // Starts the Game
 function startGame() {
   gwhStart.hide();
   gamePhase = "stage one";
-  var mainLoop = setInterval(function(){ 
+  clearInterval(mainLoop);
+  startSpawn();
+}
+
+function startSpawn() {
+  console.log("Starting Asteroids...");
+  mainLoop = setInterval(function(){ 
     if (gamePhase !== "stage one" && gamePhase !== "stage two" && gamePhase !== "stage three") {
       clearInterval(mainLoop);
       return;
@@ -210,11 +256,13 @@ function checkCollisions() {
 
         // Score points for hitting an asteroid! Smaller asteroid --> higher score
         var points = Math.ceil(MAX_ASTEROID_SIZE-curAsteroid.width()) * SCORE_UNIT;
+        if (curAsteroid.hasClass('special')) {
+          points *= 2;
+        }
         addScore(points);
       }
     });
   });
-
 
   // Next, check for asteroid-ship interactions
   $('.asteroid').each( function() {
@@ -263,13 +311,11 @@ function getRandomColor() {
 
 function createAsteroid() {
   // NOTE: source - http://www.clipartlord.com/wp-content/uploads/2016/04/aestroid.png
-  var asteroidDivStr = "<div id='a-" + asteroidIdx + "' class='asteroid'></div>"
-  // Add the rocket to the screen
-  gwhGame.append(asteroidDivStr);
+  gwhGame.append("<div id='a-" + asteroidIdx + "' class='asteroid'></div>");
   // Create and asteroid handle based on newest index
   var curAsteroid = $('#a-'+asteroidIdx);
 
-  asteroidIdx++;  // update the index to maintain uniqueness next time
+  asteroidIdx++;
 
   // Set size of the asteroid (semi-randomized)
   var astrSize = MIN_ASTEROID_SIZE + (Math.random() * (MAX_ASTEROID_SIZE - MIN_ASTEROID_SIZE));
@@ -277,19 +323,15 @@ function createAsteroid() {
   curAsteroid.css('height', astrSize+"px");
   curAsteroid.append("<img src='img/asteroid.png' height='" + astrSize + "'/>")
 
-  /* NOTE: This position calculation has been moved lower since verD -- this
-  **       allows us to adjust position more appropriately.
-  **/
-  // Pick a random starting position within the game window
-  var startingPosition = Math.random() * (gwhGame.width()-astrSize);  // Using 50px as the size of the asteroid (since no instance exists yet)
+  var startingPosition = Math.random() * (gwhGame.width()-astrSize);
 
   // Set the instance-specific properties
   curAsteroid.css('left', startingPosition+"px");
-  console.log(curAsteroid.css('left'));
 
   var mySpeed = OBJECT_REFRESH_RATE;
   var specialAsteroid = false;
   if ((gamePhase === "stage two" || gamePhase === "stage three") && asteroidIdx % 3 === 0) {
+    curAsteroid.addClass("special");
     specialAsteroid = true;
     mySpeed /= 5; 
   }
@@ -312,7 +354,6 @@ function createAsteroid() {
   }, mySpeed);
 }
 
-// Handle "fire" [rocket] events
 function fireRocket(sh) {
   if (gamePhase === "initial" || gamePhase === "gameover") { return; }
 
@@ -322,15 +363,13 @@ function fireRocket(sh) {
     $("#sound-rocket")[0].play();
   }
   // NOTE: source - https://www.raspberrypi.org/learning/microbit-game-controller/images/missile.png
-  var rocketDivStr = "<div id='r-" + rocketIdx + "' class='rocket'><img src='img/rocket.png'/></div>";
-  // Add the rocket to the screen
-  gwhGame.append(rocketDivStr);
-  // Create and rocket handle based on newest index
+  gwhGame.append("<div id='r-" + rocketIdx + "' class='rocket'><img src='img/rocket.png'/></div>");
   var curRocket = $('#r-'+rocketIdx);
   rocketIdx++;
 
   // Set vertical position
   curRocket.css('top', sh.css('top'));
+
   // Set horizontal position
   if (sh === shipA) {
     var rxPos = parseInt(sh.css('left')) + (sh.width()/2 + 3);
@@ -338,15 +377,11 @@ function fireRocket(sh) {
   else var rxPos = parseInt(sh.css('left')) + (sh.width()/2 + 77);
   curRocket.css('left', rxPos+"px");
 
-  // Create movement update handler
+  // Movement
   var thisInterval = setInterval( function() {
     curRocket.css('top', parseInt(curRocket.css('top'))-ROCKET_SPEED);
-    // Check to see if the rocket has left the game/viewing window
     if (parseInt(curRocket.css('top')) < curRocket.height()) {
-      //curRocket.hide();
       curRocket.remove();
-      
-      // Update the accuracy
       setAccuracy();
       clearInterval(thisInterval);
     }

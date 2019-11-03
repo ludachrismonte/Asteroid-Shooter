@@ -1,13 +1,12 @@
 html {
-  font-family: 'Press Start 2P', cursive, Helvetica, Times;
+  font-family: 'Press Start 2P', Helvetica, Times;
   background-color: black;
 }
-
 
 /* Main Containers */
 .outer-container {
   height: 600px;
-  width: 800px;
+  width: 855px;
   background: #eee;
   border: 5px solid #ccc;
 }
@@ -25,7 +24,7 @@ html {
 }
 .status-window {
   height: 100%;
-  width: 197px;
+  width: 250px;
   background: #feb;
   float: right;
 }
@@ -50,6 +49,26 @@ html {
 }
 .game-button:hover {
   background-color: lightgreen;
+}
+
+.settings-button {
+  width: 150px;
+  padding: 10px;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: gray;
+  color: white;
+  cursor: pointer;
+}
+.settings-button:hover {
+  background-color: darkgray;
+}
+.settings-button:active {
+  background-color: black;
+}
+
+#settings-rate {
+  width: 50px;
 }
 
 /* Game Objects */

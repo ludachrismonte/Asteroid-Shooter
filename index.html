@@ -57,6 +57,16 @@
       <h1 id='score-box'>0</h1>
       <p>accuracy:</p>
       <h1 id='accuracy-box'>0%</h1>
+      <div id="settings-button-toggle" class="settings-button" onclick="toggleSettings()">Open Setting Panel</div>
+      <div id="settings">
+        <br>
+        SFX<input id="settings-audio" type="checkbox">
+        <br><br>
+        Asteroid Rate<br>
+        <input id="settings-rate" type="text" class="Disable" placeholder="0.2 - 4" value=""/>
+        <br><br>
+        <div class="settings-button" onclick="setSettings()">Submit</div>
+      </div>
     </div>
   </div>
 
