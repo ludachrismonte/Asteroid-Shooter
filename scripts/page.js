@@ -1,11 +1,12 @@
 ////  Page-scoped globals  ////
 
 // Counters
-var rocketIdx = 1;
-var asteroidIdx = 1;
-var numFires = 0;
-var numHits = 0;
-var score = 0;
+var rocketIdx;
+var asteroidIdx;
+var shieldIdx;
+var numFires;
+var numHits;
+var score;
 
 // Size Constants
 var MAX_ASTEROID_SIZE = 50;
@@ -14,8 +15,9 @@ var ASTEROID_SPEED = 5;
 var ROCKET_SPEED = 10;
 var SHIP_SPEED = 25;
 var ASTEROID_SPAWN_RATE = 1000;  //ms
-var OBJECT_REFRESH_RATE = 50;  //ms
+var OBJECT_REFRESH_RATE = 33;  //30 FPS
 var SCORE_UNIT = 100;  // scoring is in 100-point units
+var ITEM_SPAWN_RATE = 3;
 
 /*
  * This is a handy little container trick: use objects as constants to collect
@@ -37,8 +39,9 @@ var maxShipPosX, maxShipPosY;
 var gwhGame, gwhOver, gwhStatus, gwhScore, settings;
 
 // Global Object Handles
-var shipA;
-var shipB;
+var shipA, shipB;
+var shieldA, shieldB;
+var shieldState;
 
 // "initial", "stage one", "stage two", "stage three", "gameover"
 var gamePhase;
@@ -48,11 +51,7 @@ var audio;
 // Main
 $(document).ready( function() {
   console.log("Ready!");
-  gamePhase = "initial"
   audio = false;
-  if (audio) {
-    //$("#sound-intro")[0].play();
-  }
 
   // Set global handles (now that the page is loaded)
   gwhGame = $('.game-window');
@@ -66,19 +65,43 @@ $(document).ready( function() {
 
   shipA = $('#enterprise-1');
   shipB = $('#enterprise-2');
-  resetShip();
+
+  shieldA = $('#shieldA');
+  shieldB = $('#shieldB');
 
   // Add button handlers
   $("#start-button").on("click", startGame);
   $("#restart-button").on("click", restart);
 
+  restart();
+
   $(window).keydown(keydownRouter);
 
-  // Periodically check for collisions (instead of checking every position-update)
   setInterval( function() {
-    checkCollisions();  // Remove elements if there are collisions
-  }, 50);
+    checkCollisions();
+  }, 33);
 });
+
+// Takes the Player back to the Main Menu
+function restart() {
+  gamePhase = "initial";
+  resetShip();
+  shieldState = true;
+  toggleShields();
+  rocketIdx = 1;
+  asteroidIdx = 1;
+  shieldIdx = 1;
+  numFires = 0;
+  numHits = 0;
+  score = 0;
+  gwhScore.html(parseInt(score));
+  setAccuracy();
+  gwhOver.hide();
+  gwhStart.show();
+  if (audio) {
+    $("#sound-intro")[0].play();
+  }
+}
 
 function keydownRouter(e) {
   switch (e.which) {
@@ -118,7 +141,7 @@ function toggleSettings() {
 }
 
 function setSettings() {
-  if ($("#settings-audio").checked) {
+  if ($("#settings-audio").is(':checked')) {
     audio = true;
   } 
   else {
@@ -169,23 +192,7 @@ function resetShip() {
   shipB.hide();
 }
 
-// Takes the Player back to the Main Menu
-function restart() {
-  gamePhase = "initial";
-  resetShip();
-  score = 0;
-  gwhScore.html(parseInt(score));
-  rocketIdx = 1;
-  asteroidIdx = 1;
-  numFires = 0;
-  numHits = 0;
-  setAccuracy();
-  gwhOver.hide();
-  gwhStart.show();
-  if (audio) {
-    $("#sound-intro")[0].play();
-  }
-}
+
 
 function startStageThree() {
   gamePhase = "stage three";
@@ -201,6 +208,7 @@ function gameOver() {
   // Remove all game elements
   $('.rocket').remove();
   $('.asteroid').remove();
+  $('.shield-pickup').remove();
   gwhOver.show();
   $('#game-over-score').html("Score: " + parseInt(score));
 }
@@ -236,12 +244,22 @@ function advanceLevel() {
   }
 }
 
+function toggleShields() {
+  if (shieldState) {
+    shieldState = false;
+    shieldA.hide();
+    shieldB.hide();
+  }
+  else {
+    shieldState = true;
+    shieldA.show();
+    shieldB.show();
+  }
+}
+
 // Check for any collisions and remove the appropriate object if needed
 function checkCollisions() {
   // First, check for rocket-asteroid checkCollisions
-  /* NOTE: We dont use a global handle here because we need to refresh this
-   * list of elements when we make the reference.
-   */
   $('.rocket').each( function() {
     var curRocket = $(this);  // define a local handle for this rocket
     $('.asteroid').each( function() {
@@ -253,8 +271,9 @@ function checkCollisions() {
         curRocket.remove();
         curAsteroid.remove();
         numHits++;
-
-        // Score points for hitting an asteroid! Smaller asteroid --> higher score
+        if (numHits % ITEM_SPAWN_RATE === 0) {
+          createShield();
+        }
         var points = Math.ceil(MAX_ASTEROID_SIZE-curAsteroid.width()) * SCORE_UNIT;
         if (curAsteroid.hasClass('special')) {
           points *= 2;
@@ -267,8 +286,25 @@ function checkCollisions() {
   // Next, check for asteroid-ship interactions
   $('.asteroid').each( function() {
     var curAsteroid = $(this);
-    if (isColliding(curAsteroid, shipA) || (gamePhase === "stage three" && isColliding(curAsteroid, shipB))) {
-      gameOver();
+    if (isColliding(curAsteroid, shipA) || isColliding(curAsteroid, shipB)) {
+      if (shieldState) {
+        curAsteroid.remove();
+        toggleShields();
+      }
+      else {
+        gameOver();
+      }      
+    }
+  });
+
+  // Next, check for shield-ship interactions
+  $('.shield-pickup').each( function() {
+    var curShield = $(this);
+    if (isColliding(curShield, shipA) || isColliding(curShield, shipB)) {
+      if (!shieldState) {
+        curShield.remove();
+        toggleShields();
+      }
     }
   });
 }
@@ -286,7 +322,6 @@ function isColliding(o1, o2) {
           'top': parseInt(o2.css('top')),
           'bottom': parseInt(o2.css('top')) + o1.height()
         };
-
   // If horizontally overlapping...
   if ( (o1D.left < o2D.left && o1D.right > o2D.left) ||
        (o1D.left < o2D.right && o1D.right > o2D.right) ||
@@ -295,7 +330,6 @@ function isColliding(o1, o2) {
     if ( (o1D.top > o2D.top && o1D.top < o2D.bottom) ||
          (o1D.top < o2D.top && o1D.top > o2D.bottom) ||
          (o1D.top > o2D.top && o1D.bottom < o2D.bottom) ) {
-
       // Collision!
       return true;
     }
@@ -307,6 +341,30 @@ function isColliding(o1, o2) {
 function getRandomColor() {
   // Return a random color. Note that we don't check to make sure the color does not match the background
   return '#' + (Math.random()*0xFFFFFF<<0).toString(16);
+}
+
+function createShield() {
+  console.log("Making Shield");
+  gwhGame.append("<div id='s-" + shieldIdx + "' class='shield-pickup'></div>");
+  // Create and asteroid handle based on newest index
+  var curShield = $('#s-' + shieldIdx);
+
+  shieldIdx++;
+
+  curShield.append("<img src='img/shield.png' height='30px'/>")
+
+  var startingPosition = Math.random() * (gwhGame.width() - 30);
+
+  // Set the instance-specific properties
+  curShield.css('left', startingPosition+"px");
+
+  // Make the asteroids fall towards the bottom
+  setInterval( function () {
+    curShield.css('top', parseInt(curShield.css('top')) + ASTEROID_SPEED);
+    if (parseInt(curShield.css('top')) > (gwhGame.height() - curShield.height())) {
+      curShield.remove();
+    }
+  }, OBJECT_REFRESH_RATE);
 }
 
 function createAsteroid() {
@@ -359,6 +417,7 @@ function fireRocket(sh) {
 
   numFires++;
   console.log('Firing rocket...');
+  console.log(audio);
   if (audio) {
     $("#sound-rocket")[0].play();
   }

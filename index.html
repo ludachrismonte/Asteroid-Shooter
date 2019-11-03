@@ -23,11 +23,13 @@
   <div class='outer-container'>
     <div class='game-window'>
 
-      <div id='enterprise-1'>
+      <div id='enterprise-1' class="ship">
         <img src='img/fighter.png' height='50px'/>
+        <img id="shieldA" class="shield" src='img/shield.png' height='60px'/>
       </div>
-      <div id='enterprise-2'>
+      <div id='enterprise-2' class="ship">
         <img src='img/fighter.png' height='50px'/>
+        <img id="shieldB" class="shield" src='img/shield.png' height='60px'/>
       </div>
 
       <div id="start-panel" class="game-panel" style="display: block;">
@@ -53,9 +55,9 @@
       <h3>Welcome!</h3>
       <hr>
       <br>
-      <p>score:</p>
+      <p>Score:</p>
       <h1 id='score-box'>0</h1>
-      <p>accuracy:</p>
+      <p>Accuracy:</p>
       <h1 id='accuracy-box'>0%</h1>
       <div id="settings-button-toggle" class="settings-button" onclick="toggleSettings()">Open Setting Panel</div>
       <div id="settings">
