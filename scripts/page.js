@@ -283,7 +283,19 @@ function checkCollisions() {
     });
   });
 
-  // Next, check for asteroid-ship interactions
+  // rocket-shield collisions
+  $('.rocket').each( function() {
+    var curRocket = $(this);
+    $('.shield-pickup').each( function() {
+      var curShield = $(this);
+      if (isColliding(curRocket,curShield)) {
+        curRocket.remove();
+        curShield.remove();
+      }
+    });
+  });
+
+  // asteroid-ship interactions
   $('.asteroid').each( function() {
     var curAsteroid = $(this);
     if (isColliding(curAsteroid, shipA) || isColliding(curAsteroid, shipB)) {
